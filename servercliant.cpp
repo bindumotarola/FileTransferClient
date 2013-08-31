@@ -7,6 +7,10 @@ ServerCliant::ServerCliant(QObject *parent) :
 
 void ServerCliant::test(QString CArg,QString ClassFilepath)
 {
+    DownloadStrted=0;
+    downloadFilePath ="D:/dk work/Motarola/project/teacher/";
+
+
     //Carg contarin download or upload command with path path means
     //if download path of the file if upload nameof the file
     int pos = CArg.indexOf(" ");
@@ -56,28 +60,46 @@ void ServerCliant::disconnected()
 
 void ServerCliant::readyRead()
 {
-    try
+    if(DownloadStrted==0)
     {
-        //Append to the command buffer
         mCommandBuffer.append(socket->readAll());
-
-       qDebug()<<mCommandBuffer;
-        //Check to see if it is the end of line
         if(mCommandBuffer.endsWith('\n'))
         {
             ProcessCommand(mCommandBuffer);
             mCommandBuffer.clear();
         }
+        //qDebug()<<mCommandBuffer;
 
     }
-    catch(QString err)
+    else
     {
-        //SendResponse(550,err);
+
+        DoDownload(socket->readAll());
+
+
     }
-    catch(...)
-    {
-        //SendResponse(550,"Unknown error in SocketReadyRead()");
-    }
+//    try
+//    {
+//        //Append to the command buffer
+//        mCommandBuffer.append(socket->readAll());
+
+//       qDebug()<<mCommandBuffer;
+//        //Check to see if it is the end of line
+//        if(mCommandBuffer.endsWith('\n'))
+//        {
+//            ProcessCommand(mCommandBuffer);
+//            mCommandBuffer.clear();
+//        }
+
+//    }
+//    catch(QString err)
+//    {
+//        //SendResponse(550,err);
+//    }
+//    catch(...)
+//    {
+//        //SendResponse(550,"Unknown error in SocketReadyRead()");
+//    }
 
 }
 
@@ -88,48 +110,50 @@ void ServerCliant::bytesWritten(qint64 bytes)
 }
 
 
-void ServerCliant::ProcessCommand(QString ClientCommand)
+void ServerCliant::ProcessCommand(QByteArray ClientCommand)
 {
-    try
-    {
-        //Some clients like to put multiple commands on a single packet command1<crlf>command2<crlf>
-        //Bad form yes but we have to deal with it regardless
+    ExecuteCommand(ClientCommand);
 
-        QStringList Commands = ClientCommand.split("\n");
+//    try
+//    {
+//        //Some clients like to put multiple commands on a single packet command1<crlf>command2<crlf>
+//        //Bad form yes but we have to deal with it regardless
 
-        foreach(QString Command, Commands)
-        {
-            QString ClientCommand = Command.trimmed();
-            if(ClientCommand != "")
-            {
-                //Execute the command
-                ExecuteCommand(ClientCommand);
-            }
-        }
-    }
-    catch(QString err)
-    {
-        //SendResponse(550,err);
-    }
-    catch(...)
-    {
-        //SendResponse(550,"Unknown error in ProcessCommand()");
-    }
+//        QStringList Commands = ClientCommand.split("\n");
+
+//        foreach(QString Command, Commands)
+//        {
+//            QString ClientCommand = Command.trimmed();
+//            if(ClientCommand != "")
+//            {
+//                //Execute the command
+//                ExecuteCommand(ClientCommand);
+//            }
+//        }
+//    }
+//    catch(QString err)
+//    {
+//        //SendResponse(550,err);
+//    }
+//    catch(...)
+//    {
+//        //SendResponse(550,"Unknown error in ProcessCommand()");
+//    }
 }
 
-void ServerCliant::ExecuteCommand(QString ClientCommand)
+void ServerCliant::ExecuteCommand(QByteArray ClientCommand)
 {
     try
     {
-        QString Command = "";
-        QString Arg = "";
+        QByteArray Command = "";
+        QByteArray Arg = "";
 
         if(ClientCommand.contains(" "))
         {
             //Contains arquments
             int pos = ClientCommand.indexOf(" ");
             Command = ClientCommand.mid(0,pos).trimmed();
-            Arg = ClientCommand.mid(pos + 1).trimmed();
+            Arg = ClientCommand.mid(pos + 1);
         }
         else
         {
@@ -142,7 +166,7 @@ void ServerCliant::ExecuteCommand(QString ClientCommand)
 
         if(Command=="INIT")
         {
-            DoINIT(Arg);
+            DoINIT(Arg.trimmed());
 
         }
 
@@ -162,7 +186,7 @@ void ServerCliant::ExecuteCommand(QString ClientCommand)
         }
         else if(Command=="DOWNSTART")
         {
-            DoDownload(Arg);
+            DoNewDownload(Arg);
         }
 
 
@@ -200,7 +224,7 @@ void ServerCliant::ExecuteCommand(QString ClientCommand)
     }
 }
 
-void ServerCliant::DoINIT(QString Arg)
+void ServerCliant::DoINIT(QByteArray Arg)
 {
 
     QFile studentNames(ClassName);
@@ -244,7 +268,8 @@ void ServerCliant::DoINIT(QString Arg)
 
 void ServerCliant::ToDownload()
 {
-    socket->write("DOWN "+Path);
+    //qDebug()<<"command"<<"DOWN "+Path.append("\n").toLatin1();
+    socket->write("DOWN "+Path.append("\n").toLatin1());
 
 
 }
@@ -273,8 +298,77 @@ void ServerCliant::ToUpload()
     socket->write("End\n");
 
 }
-void ServerCliant::DoDownload(QByteArray Arg)
+void ServerCliant::DoNewDownload(QByteArray Arg)
 {
+    QByteArray fileName = "";
+    QByteArray File = "";
+
+    if(Arg.contains("FNEnd"))
+    {
+        //Contains arquments
+        int pos = Arg.indexOf("FNEnd",0);
+        fileName = Arg.mid(0,pos).trimmed();
+        File = Arg.mid(pos + 5);
+        //qDebug()<<"filposition"<<pos;
+    }
+
+
+    QString filepath=downloadFilePath;
+    filepath.append(fileName);
+    qDebug()<<filepath;
+
+    newfile= new QFile(filepath);
+    if(newfile->exists())
+    {
+        newfile->remove();
+
+    }
+    if(!newfile->open(QIODevice::Append))
+    {
+
+        qDebug()<<"error";
+    }
+    else
+    {
+        if(File.endsWith("End\n"))
+        {
+
+            qDebug()<<File.mid(0,(File.length()-4));
+             newfile->write(File.mid(0,(File.length()-4)));
+             newfile->close();
+             DownloadStrted=0;
+        }
+        else {
+            qDebug()<<"its herefdfdfdfdfdffdfdf";
+           newfile->write(File);
+            DownloadStrted=1;
+        }
+
+
+
+
+    }
 
 
 }
+
+  void ServerCliant::DoDownload(QByteArray Arg)
+  {
+      if(Arg.endsWith("End\n"))
+      {
+          qDebug()<<Arg;
+          newfile->write(Arg.mid(0,(Arg.length()-4)));
+          newfile->close();
+          DownloadStrted =0;
+
+
+
+      }
+      else
+      {
+          newfile->write(Arg);
+         // qDebug()<<Arg;
+
+      }
+
+  }

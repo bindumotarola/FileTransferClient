@@ -2,6 +2,7 @@
 #define RECEIVEFILE_H
 
 #include <QWidget>
+#include "servercliant.h"
 
 namespace Ui {
 class ReceiveFile;
@@ -17,6 +18,11 @@ public:
     
 private:
     Ui::ReceiveFile *ui;
+    ServerCliant *cliant;
+
+private slots:
+    void getStudentFiles();
+    void getFileFormOneStudent();
 };
 
 #endif // RECEIVEFILE_H

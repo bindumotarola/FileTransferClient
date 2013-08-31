@@ -166,5 +166,41 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>pushButton_2</sender>
+   <signal>clicked()</signal>
+   <receiver>ReceiveFile</receiver>
+   <slot>getStudentFiles()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>465</x>
+     <y>84</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>675</x>
+     <y>90</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pushButton_3</sender>
+   <signal>clicked()</signal>
+   <receiver>ReceiveFile</receiver>
+   <slot>getFileFormOneStudent()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>478</x>
+     <y>282</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>701</x>
+     <y>276</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
+ <slots>
+  <slot>getStudentFiles()</slot>
+  <slot>getFileFormOneStudent()</slot>
+ </slots>
 </ui>

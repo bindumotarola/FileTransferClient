@@ -17,6 +17,7 @@ public:
     QTcpSocket *socket;
     void test(QString CArg,QString ClassFilepath);
     int DownloadStrted;
+    QString downloadFilePath;
 
 
 private:
@@ -25,14 +26,16 @@ private:
     QString Path;     //!teacher send command argument if upload filpath if download filename
     QString ClassName;
     void ProcessCommand(QByteArray ClientCommand);
-    void ExecuteCommand(QString ClientCommand);
+    void ExecuteCommand(QByteArray ClientCommand);
 
 
     void ToDownload();
-     void DoDownload(QByteArray Arg);
+    void DoDownload(QByteArray Arg);
+    void DoNewDownload(QByteArray Arg);
     void ToUpload();
 
-    void DoINIT(QString Arg);
+    void DoINIT(QByteArray Arg);
+    QFile *newfile;
     
 signals:
     
